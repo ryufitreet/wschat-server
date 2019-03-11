@@ -51,16 +51,29 @@ router.route('/users/me')
     })
   })
 
-router.route('/messages/main') // main assumed PRIVATE chat will be implemented
+router.route('/messages/main/:page(\\d?)') // main assumed PRIVATE chat will be implemented
   .get((req, res) => {
+    let { page } = req.params;
+    page = page || 1;
+    const limit = 50;
+    // TODO брать параметры из гетов
+    // Добавить сортировку
     Message.findAll({
       attributes: ['id', 'message', 'createdAt'],
       include: [
         { model: User, }
       ],
+      order: [
+        ['createdAt', 'DESC'],
+      ],
+      limit,
+      offset: (page - 1)*limit
     })
       .then(messages => res.json(messages))
-      .catch(error => res.json({status: 'error'}));
+      .catch(error => {
+        res.json({status: 'error'});
+        console.log(error);
+      });
   })
   .put((req, res) => {
     const { message } = req.body;

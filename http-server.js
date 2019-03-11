@@ -34,6 +34,7 @@ app.use(expressSession({
 
 
 const isAuthenticated = (req, res, next) => {
+
   const authToken = req.get('AuthToken');
   const [login='', auth_token=''] = Buffer.from(authToken, 'base64').toString("ascii").split(' + ');
 

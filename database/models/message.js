@@ -23,10 +23,24 @@ const initModel = (sequelize) => {
         .then((users) => {
           if (users.length) {
             const { id: fk_user } = users[0];
-            Message.create({
-              message: 'Very First Message',
+            let prms = Message.create({
+              message: `Message Number ${0}`,
               fk_user,
-            })
+            });
+            for (let i of Array(300).keys()) {
+              if (i === 0) continue;
+              prms = prms.then(() => {
+                return new Promise((resolve, reject) => {
+                  setTimeout(() => {
+                    Message.create({
+                      message: `Message Number ${i}`,
+                      fk_user,
+                    })
+                    .then(()=> resolve());
+                  },5);
+                });                  
+              });
+            }            
           }          
         })
     });
