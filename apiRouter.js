@@ -5,6 +5,7 @@ const wsServer = require('./websocket-server');
 const sessionStore = require('./session-store');
 
 const { User, Message } = database.models;
+const API = require('./api.js');
 
 const router = express.Router();
 
@@ -75,40 +76,11 @@ router.route('/messages/main/:page(\\d?)') // main assumed PRIVATE chat will be 
         console.log(error);
       });
   })
-  .put((req, res) => {
+  .put((req, res) => { // remove after transfer to websocker message sending
     const { message } = req.body;
-    const { id: fk_user } = req.user;
+    const { id } = req.user;
 
-    Message.create({
-      message,
-      fk_user,
-    })
-      .then(async (result) => {
-        const data = result.dataValues;
-        const user = await User.findOne({
-          where: {id: data.fk_user}
-        });
-        data.user = user.dataValues;
-        // Send Result via WebSocket
-        if (wsServer.server) {
-          const { clients = [] } = wsServer.server;
-          
-          clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN && client.authorized){
-              client.send(JSON.stringify({
-                type: 'new-message',
-                payload: data
-              }));
-            }
-          });
-        }
-        // Send result via API
-        res.json(result);
-      })
-      .catch((error) => {
-        console.error(error);
-        res.json({status: 'error'});
-      });
+    API.Message.add(message, id);    
   })
 
 module.exports = router;
